@@ -1,22 +1,24 @@
+import Field from '../components/Inputs/Field'
 import React, { useEffect, useState } from 'react'
-import {
-  getCriterionStaging,
-  getStudyVersionsAdjudication,
-  getValues,
-} from '../api/studyAdjudication'
 import {
   ApiStatus,
   CriteriaValue,
   InputType,
   StagingCriterionWithValueList,
   StudyVersionAdjudication,
+  Unit,
 } from '../model'
-import Field from '../components/Inputs/Field'
-import { QuestionAdjudication } from '../components/QuestionAdjudication'
-import { getInputTypes } from '../api/inputTypes'
+import {
+  getCriterionStaging,
+  getStudyVersionsAdjudication,
+  getValues,
+} from '../api/studyAdjudication'
 import { ErrorRetry } from '../components/ErrorRetry'
+import { CriteriaValueBuilder } from '../components/CriteriaValueBuilder'
+import { getInputTypes } from '../api/inputTypes'
+import { getUnits } from '../api/units'
 
-export function QuestionAdjudicationPage() {
+export function CriteriaValueBuilderPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
     StudyVersionAdjudication[]
   >([])
@@ -24,39 +26,50 @@ export function QuestionAdjudicationPage() {
   const [stagingCriteria, setStagingCriteria] = useState<
     StagingCriterionWithValueList[]
   >([])
-  const [values, setValues] = useState<CriteriaValue[]>([])
   const [inputTypes, setInputTypes] = useState<InputType[]>([])
+  const [numericValues, setNumericValues] = useState<CriteriaValue[]>([])
+  const [units, setUnits] = useState<Unit[]>([])
   const [loadingStatus, setLoadingStatus] = useState<ApiStatus>('not started')
 
   const loadPage = () => {
-    Promise.all([getStudyVersionsAdjudication(), getValues(), getInputTypes()])
-      .then(([studyVersions, values, inputTypes]) => {
+    Promise.all([
+      getStudyVersionsAdjudication(),
+      getValues(),
+      getInputTypes(),
+      getUnits(),
+    ])
+      .then(([studyVersions, values, inputTypes, units]) => {
         setStudyVersionsAdjudication(studyVersions)
-        setValues(values.filter((v) => !v.is_numeric && v.unit_id === 1))
+        setNumericValues(values.filter((v) => v.is_numeric))
         setInputTypes(inputTypes)
+        setUnits(units)
         setLoadingStatus('success')
       })
       .catch((err) => {
-        console.error(err)
         setLoadingStatus('error')
+        console.error(err)
       })
   }
-  useEffect(() => {
-    setLoadingStatus('sending')
-    loadPage()
-  }, [])
 
-  const onStudyAdjudicationChanged = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const onStudyChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const index = +event.target.value
     setSvaIndex(index)
     getCriterionStaging(
       studyVersionsAdjudication[index].eligibility_criteria_id
     )
-      .then(setStagingCriteria)
+      .then((stagingCriteria) => {
+        const activeStagingCriteria = stagingCriteria.filter(
+          (sc) => sc.criterion_adjudication_status === 'ACTIVE'
+        )
+        setStagingCriteria(activeStagingCriteria)
+      })
       .catch(() => setStagingCriteria([]))
   }
+
+  useEffect(() => {
+    setLoadingStatus('sending')
+    loadPage()
+  }, [])
 
   if (loadingStatus === 'not started' || loadingStatus === 'sending') {
     return <div>Loading...</div>
@@ -69,7 +82,7 @@ export function QuestionAdjudicationPage() {
       <Field
         config={{
           type: 'select',
-          label: 'Select a Study to Adjudicate',
+          label: 'Select a Study',
           placeholder: 'Select One',
           name: 'studyVersion',
           options: studyVersionsAdjudication.map((sva, index) => ({
@@ -78,22 +91,22 @@ export function QuestionAdjudicationPage() {
           })),
         }}
         value={svaIndex}
-        onChange={onStudyAdjudicationChanged}
+        onChange={onStudyChanged}
       />
       {stagingCriteria.length ? (
         stagingCriteria
           .sort((a, b) => a.id - b.id)
           .map((sc) => (
-            <QuestionAdjudication
+            <CriteriaValueBuilder
               key={sc.id}
               stagingCriterion={sc}
-              lookupValues={values}
               inputTypes={inputTypes}
-              setLookupValues={setValues}
+              numericValues={numericValues}
+              units={units}
             />
           ))
       ) : (
-        <div className="mt-4">No Staging Criteria Found</div>
+        <div className="mt-4">No Active Staging Criteria Found</div>
       )}
     </div>
   )

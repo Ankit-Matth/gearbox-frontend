@@ -66,7 +66,7 @@ export function acceptStagingCriterion(
 export function getValues(): Promise<CriteriaValue[]> {
   return fetchGearbox('/gearbox/values')
     .then((res) => res.json() as Promise<{ results: CriteriaValue[] }>)
-    .then((res) => res.results.filter((v) => !v.is_numeric && v.unit_id === 1))
+    .then((res) => res.results)
 }
 
 export function createValue(value: CriteriaValue): Promise<CriteriaValue> {

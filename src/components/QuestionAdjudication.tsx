@@ -299,28 +299,26 @@ export function QuestionAdjudication({
         onChange={onInputTypeSelected}
       />
       {isList && (
-        <>
-          <Field
-            config={{
-              type: 'multiselect',
-              label: `Options`,
-              placeholder: 'Select One',
-              name: 'values',
-              options: lookupValues.map((lv) => ({
-                value: lv.id,
-                label: lv.value_string || '',
-              })),
-              onCreateOption: onInputChange,
-              isLoading: isCreating,
-              disabled: !isEditable,
-            }}
-            value={selectedValues}
-            onChange={(newValues) => {
-              setSelectedValues(newValues)
-              setCanPublish(false)
-            }}
-          />
-        </>
+        <Field
+          config={{
+            type: 'multiselect',
+            label: `Options`,
+            placeholder: 'Select One',
+            name: 'values',
+            options: lookupValues.map((lv) => ({
+              value: lv.id,
+              label: lv.value_string || '',
+            })),
+            onCreateOption: onInputChange,
+            isLoading: isCreating,
+            disabled: !isEditable,
+          }}
+          value={selectedValues}
+          onChange={(newValues) => {
+            setSelectedValues(newValues)
+            setCanPublish(false)
+          }}
+        />
       )}
     </div>
   )

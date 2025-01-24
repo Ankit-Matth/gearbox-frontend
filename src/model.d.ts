@@ -193,13 +193,16 @@ export type UserInputUi = {
   name?: string
 }
 
-export type EligibilityCriteriaInfo = {
+export type ElCriteriaHasCriterion = {
+  criterion_id: number | null
+  eligibility_criteria_id: number
   create_date?: string
-  status: StudyVersionStatus
-  study_version_id?: number
-  study_algorithm_engine_id?: number
-  eligibility_criteria_id?: number
-  id?: number
+  active: boolean
+  value_id: number
+}
+
+export type StagingElCriteriaHasCriterion = ElCriteriaHasCriterion & {
+  criterion_staging_id: number
 }
 
 export type InputType = {
@@ -224,7 +227,7 @@ export type StagingCriterion = {
   criterion_id: number | null
   description: string
   display_name: string
-  echc_adjudication_status: 'NEW' | 'EXISTING'
+  echc_adjudication_status: 'NEW' | 'EXISTING' | 'ACTIVE'
   eligibility_criteria_id: number
   id: number
   text: string
@@ -260,4 +263,9 @@ export type StagingCriterionPublish = {
   input_type_id: number
   criterion_staging_id: number
   values: number[]
+}
+
+export type Unit = {
+  id: number
+  name: string
 }

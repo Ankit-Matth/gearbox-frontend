@@ -6,7 +6,7 @@ import { StudyVersion } from '../model'
 import { useModal } from '../hooks/useModal'
 import { CriteriaBuilderModal } from './CriteriaBuilderModal'
 import Button from './Inputs/Button'
-import { updateEligibilityCriteriaInfo } from '../api/eligibilityCriteriaInfo'
+import { updateStudyVersion } from '../api/studyVersions'
 
 export function CriteriaBuilder({
   gearboxState,
@@ -19,7 +19,7 @@ export function CriteriaBuilder({
   studyVersions: StudyVersion[]
   setStudyVersions: (svs: StudyVersion[]) => void
 }) {
-  const { study, eligibility_criteria_id, status } = studyVersion
+  const { study, status } = studyVersion
   const matchInfoId = `match-info-${study.id}`
 
   const [showModal, openModal, closeModal] = useModal()
@@ -28,14 +28,15 @@ export function CriteriaBuilder({
 
   const isActive = status === 'ACTIVE'
   const changeStudyStatus = () => {
-    return updateEligibilityCriteriaInfo(eligibility_criteria_id, {
+    return updateStudyVersion({
+      ...studyVersion,
       status: isActive ? 'IN_PROCESS' : 'ACTIVE',
     })
-      .then(() => {
+      .then(() =>
         setStudyVersions(
           studyVersions.filter((sv) => sv.id !== studyVersion.id)
         )
-      })
+      )
       .catch(console.error)
   }
 
