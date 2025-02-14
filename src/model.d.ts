@@ -198,11 +198,11 @@ export type ElCriteriaHasCriterion = {
   eligibility_criteria_id: number
   create_date?: string
   active: boolean
-  value_id: number
 }
 
 export type StagingElCriteriaHasCriterion = ElCriteriaHasCriterion & {
   criterion_staging_id: number
+  value_ids: number[]
 }
 
 export type InputType = {
@@ -221,7 +221,7 @@ export type StudyVersionAdjudication = {
   study: Study
 }
 
-export type StagingCriterion = {
+export type CriterionStaging = {
   code: string
   criterion_adjudication_status: 'NEW' | 'EXISTING' | 'ACTIVE' | 'IN_PROCESS'
   criterion_id: number | null
@@ -233,6 +233,7 @@ export type StagingCriterion = {
   text: string
   input_id: number
   input_type_id: number
+  echc_value_ids: number[] | null
 }
 
 export type CriteriaValue = {
@@ -246,15 +247,15 @@ export type CriteriaValue = {
   unit_id: number
 }
 
-export type StagingCriterionWithValues = StagingCriterion & {
-  values: number[]
+export type CriterionStagingWithValues = CriterionStaging & {
+  criterion_value_ids: number[]
 }
 
-export type StagingCriterionWithValueList = StagingCriterion & {
-  value_list: CriteriaValue[] | null
+export type CriterionStagingWithValueList = CriterionStaging & {
+  criterion_value_list: CriteriaValue[] | null
 }
 
-export type StagingCriterionPublish = {
+export type CriterionStagingPublish = {
   code: string
   display_name: string
   description: string

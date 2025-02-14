@@ -3,28 +3,27 @@ import React, { useEffect, useState } from 'react'
 import {
   ApiStatus,
   CriteriaValue,
+  CriterionStagingWithValueList,
   InputType,
-  StagingCriterionWithValueList,
   StudyVersionAdjudication,
   Unit,
 } from '../model'
-import {
-  getCriterionStaging,
-  getStudyVersionsAdjudication,
-  getValues,
-} from '../api/studyAdjudication'
+import { getStudyVersionsAdjudication } from '../api/studyAdjudication'
 import { ErrorRetry } from '../components/ErrorRetry'
 import { CriteriaValueBuilder } from '../components/CriteriaValueBuilder'
 import { getInputTypes } from '../api/inputTypes'
 import { getUnits } from '../api/units'
+import { getElCriteriaHasCriterionsByElId } from '../api/elCriteriaHasCriterion'
+import { getValues } from '../api/value'
+import { getCriterionStaging } from '../api/criterionStaging'
 
 export function CriteriaValueBuilderPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
     StudyVersionAdjudication[]
   >([])
   const [svaIndex, setSvaIndex] = useState<number>(-1)
-  const [stagingCriteria, setStagingCriteria] = useState<
-    StagingCriterionWithValueList[]
+  const [activeStagingCriteria, setActiveStagingCriteria] = useState<
+    CriterionStagingWithValueList[]
   >([])
   const [inputTypes, setInputTypes] = useState<InputType[]>([])
   const [numericValues, setNumericValues] = useState<CriteriaValue[]>([])
@@ -54,16 +53,19 @@ export function CriteriaValueBuilderPage() {
   const onStudyChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const index = +event.target.value
     setSvaIndex(index)
-    getCriterionStaging(
+    const eligibilityCriteriaId =
       studyVersionsAdjudication[index].eligibility_criteria_id
-    )
-      .then((stagingCriteria) => {
+    Promise.all([
+      getCriterionStaging(eligibilityCriteriaId),
+      getElCriteriaHasCriterionsByElId(eligibilityCriteriaId),
+    ])
+      .then(([stagingCriteria]) => {
         const activeStagingCriteria = stagingCriteria.filter(
           (sc) => sc.criterion_adjudication_status === 'ACTIVE'
         )
-        setStagingCriteria(activeStagingCriteria)
+        setActiveStagingCriteria(activeStagingCriteria)
       })
-      .catch(() => setStagingCriteria([]))
+      .catch(() => setActiveStagingCriteria([]))
   }
 
   useEffect(() => {
@@ -93,8 +95,8 @@ export function CriteriaValueBuilderPage() {
         value={svaIndex}
         onChange={onStudyChanged}
       />
-      {stagingCriteria.length ? (
-        stagingCriteria
+      {activeStagingCriteria.length ? (
+        activeStagingCriteria
           .sort((a, b) => a.id - b.id)
           .map((sc) => (
             <CriteriaValueBuilder
@@ -102,6 +104,7 @@ export function CriteriaValueBuilderPage() {
               stagingCriterion={sc}
               inputTypes={inputTypes}
               numericValues={numericValues}
+              setNumericValues={setNumericValues}
               units={units}
             />
           ))

@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import {
-  getCriterionStaging,
-  getStudyVersionsAdjudication,
-  getValues,
-} from '../api/studyAdjudication'
+import { getStudyVersionsAdjudication } from '../api/studyAdjudication'
 import {
   ApiStatus,
   CriteriaValue,
   InputType,
-  StagingCriterionWithValueList,
+  CriterionStagingWithValueList,
   StudyVersionAdjudication,
 } from '../model'
 import Field from '../components/Inputs/Field'
 import { QuestionAdjudication } from '../components/QuestionAdjudication'
 import { getInputTypes } from '../api/inputTypes'
 import { ErrorRetry } from '../components/ErrorRetry'
+import { getValues } from '../api/value'
+import { getCriterionStaging } from '../api/criterionStaging'
 
 export function QuestionAdjudicationPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
@@ -22,7 +20,7 @@ export function QuestionAdjudicationPage() {
   >([])
   const [svaIndex, setSvaIndex] = useState<number>(-1)
   const [stagingCriteria, setStagingCriteria] = useState<
-    StagingCriterionWithValueList[]
+    CriterionStagingWithValueList[]
   >([])
   const [values, setValues] = useState<CriteriaValue[]>([])
   const [inputTypes, setInputTypes] = useState<InputType[]>([])
