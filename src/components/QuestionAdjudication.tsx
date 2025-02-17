@@ -3,19 +3,19 @@ import {
   CriteriaValue,
   InputType,
   MatchFormFieldOption,
-  StagingCriterion,
-  StagingCriterionWithValueList,
+  CriterionStaging,
+  CriterionStagingWithValueList,
 } from '../model'
 import Field from './Inputs/Field'
 import Button from './Inputs/Button'
 import React, { useEffect, useRef, useState } from 'react'
-import {
-  acceptStagingCriterion,
-  createValue,
-  publishStagingCriterion,
-  saveStagingCriterion,
-} from '../api/studyAdjudication'
 import { RequestStatusBar } from './RequestStatusBar'
+import { createValue } from '../api/value'
+import {
+  acceptCriterionStaging,
+  publishCriterionStaging,
+  saveCriterionStaging,
+} from '../api/criterionStaging'
 
 export function QuestionAdjudication({
   stagingCriterion,
@@ -23,7 +23,7 @@ export function QuestionAdjudication({
   inputTypes,
   setLookupValues,
 }: {
-  stagingCriterion: StagingCriterionWithValueList
+  stagingCriterion: CriterionStagingWithValueList
   lookupValues: CriteriaValue[]
   inputTypes: InputType[]
   setLookupValues: React.Dispatch<React.SetStateAction<CriteriaValue[]>>
@@ -35,13 +35,13 @@ export function QuestionAdjudication({
   }
 
   const [status, setStatus] = useState<
-    StagingCriterion['criterion_adjudication_status']
+    CriterionStaging['criterion_adjudication_status']
   >(stagingCriterion.criterion_adjudication_status)
 
   const isEditable = status === 'NEW' || status === 'IN_PROCESS'
 
   const [selectedValues, setSelectedValues] = useState<MatchFormFieldOption[]>(
-    stagingCriterion.value_list?.map((v) => ({
+    stagingCriterion.criterion_value_list?.map((v) => ({
       value: v.id,
       label: v.value_string || '',
     })) || []
@@ -54,11 +54,11 @@ export function QuestionAdjudication({
   )
   const [isCreating, setIsCreating] = useState<boolean>(false)
   const formRef = useRef<HTMLFormElement>(null)
-  const [loadingStatus, setLoadingStatus] = useState<ApiStatus>('not started')
+  const [apiStatus, setApiStatus] = useState<ApiStatus>('not started')
   const timerIdRef = useRef<NodeJS.Timer | null>(null)
   const [canPublish, setCanPublish] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string>('')
-  const isSendingReq = loadingStatus === 'sending'
+  const isSendingReq = apiStatus === 'sending'
 
   useEffect(() => {
     return () => {
@@ -76,30 +76,32 @@ export function QuestionAdjudication({
     const displayName = formData.get('displayName')?.toString() || ''
     const description = formData.get('description')?.toString() || ''
 
-    const { value_list, ...updatedStagingCriterion } = stagingCriterion
-    setLoadingStatus('sending')
-    saveStagingCriterion({
-      ...updatedStagingCriterion,
+    const { criterion_value_list, ...updatedCriterionStaging } =
+      stagingCriterion
+    setApiStatus('sending')
+    saveCriterionStaging({
+      ...updatedCriterionStaging,
       code,
       display_name: displayName,
       description,
       input_type_id: selectedInputTypeId,
       criterion_id: null,
-      values: selectedValues.map((v) => v.value),
+      criterion_value_ids: selectedValues.map((v) => v.value),
     })
       .then(() => {
-        setLoadingStatus('success')
+        console.log('here')
+        setApiStatus('success')
         setStatus('IN_PROCESS')
         setCanPublish(true)
       })
       .catch((err) => {
         console.error(err)
-        setLoadingStatus('error')
+        setApiStatus('error')
       })
       .finally(
         () =>
           (timerIdRef.current = setTimeout(
-            () => setLoadingStatus('not started'),
+            () => setApiStatus('not started'),
             3000
           ))
       )
@@ -120,8 +122,8 @@ export function QuestionAdjudication({
       const displayName = formData.get('displayName')?.toString() || ''
       const description = formData.get('description')?.toString() || ''
 
-      setLoadingStatus('sending')
-      publishStagingCriterion({
+      setApiStatus('sending')
+      publishCriterionStaging({
         code,
         active: true,
         display_name: displayName,
@@ -131,17 +133,17 @@ export function QuestionAdjudication({
         input_type_id: selectedInputTypeId,
       })
         .then(() => {
-          setLoadingStatus('success')
+          setApiStatus('success')
           setStatus('ACTIVE')
         })
         .catch((err) => {
           setErrorMsg(err.message)
-          setLoadingStatus('error')
+          setApiStatus('error')
         })
         .finally(
           () =>
             (timerIdRef.current = setTimeout(
-              () => setLoadingStatus('not started'),
+              () => setApiStatus('not started'),
               3000
             ))
         )
@@ -156,20 +158,20 @@ export function QuestionAdjudication({
         'Accepting the staging criterion will finalized the changes and can not be reverted. Are you sure to accept?'
       )
     ) {
-      setLoadingStatus('sending')
-      acceptStagingCriterion(stagingCriterion.id)
+      setApiStatus('sending')
+      acceptCriterionStaging(stagingCriterion.id)
         .then(() => {
-          setLoadingStatus('success')
+          setApiStatus('success')
           setStatus('ACTIVE')
         })
         .catch((err) => {
           console.error(err)
-          setLoadingStatus('error')
+          setApiStatus('error')
         })
         .finally(
           () =>
             (timerIdRef.current = setTimeout(
-              () => setLoadingStatus('not started'),
+              () => setApiStatus('not started'),
               3000
             ))
         )
@@ -187,7 +189,7 @@ export function QuestionAdjudication({
   }
 
   const onInputChange = (inputLabel: string) => {
-    const optionExists = stagingCriterion.value_list?.some(
+    const optionExists = stagingCriterion.criterion_value_list?.some(
       (v) => v.value_string?.toLowerCase() === inputLabel.toLowerCase()
     )
 
@@ -231,10 +233,7 @@ export function QuestionAdjudication({
         <div className="flex justify-between items-center mb-2">
           <h1>Status: {status}</h1>
           <div className="flex items-center">
-            <RequestStatusBar
-              loadingStatus={loadingStatus}
-              errorMsg={errorMsg}
-            />
+            <RequestStatusBar apiStatus={apiStatus} errorMsg={errorMsg} />
             <ActionButtons
               status={status}
               isSendingReq={isSendingReq}
@@ -299,28 +298,26 @@ export function QuestionAdjudication({
         onChange={onInputTypeSelected}
       />
       {isList && (
-        <>
-          <Field
-            config={{
-              type: 'multiselect',
-              label: `Options`,
-              placeholder: 'Select One',
-              name: 'values',
-              options: lookupValues.map((lv) => ({
-                value: lv.id,
-                label: lv.value_string || '',
-              })),
-              onCreateOption: onInputChange,
-              isLoading: isCreating,
-              disabled: !isEditable,
-            }}
-            value={selectedValues}
-            onChange={(newValues) => {
-              setSelectedValues(newValues)
-              setCanPublish(false)
-            }}
-          />
-        </>
+        <Field
+          config={{
+            type: 'multiselect',
+            label: `Options`,
+            placeholder: 'Select One',
+            name: 'values',
+            options: lookupValues.map((lv) => ({
+              value: lv.id,
+              label: lv.value_string || '',
+            })),
+            onCreateOption: onInputChange,
+            isLoading: isCreating,
+            disabled: !isEditable,
+          }}
+          value={selectedValues}
+          onChange={(newValues) => {
+            setSelectedValues(newValues)
+            setCanPublish(false)
+          }}
+        />
       )}
     </div>
   )
@@ -335,7 +332,7 @@ function ActionButtons({
   edit,
   accept,
 }: {
-  status: StagingCriterion['criterion_adjudication_status']
+  status: CriterionStaging['criterion_adjudication_status']
   isSendingReq: boolean
   canPublish: boolean
   save: () => void

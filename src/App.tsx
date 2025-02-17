@@ -20,6 +20,7 @@ import { ErrorRetry } from './components/ErrorRetry'
 import { AdminPage } from './pages/AdminPage'
 import { QuestionEditorPage } from './pages/QuestionEditorPage'
 import { QuestionAdjudicationPage } from './pages/QuestionAdjudicationPage'
+import { CriteriaValueBuilderPage } from './pages/CriteriaValueBuilderPage'
 
 function App() {
   const auth = useAuth()
@@ -72,6 +73,10 @@ function App() {
             <Route
               path="question-adjudication"
               element={<QuestionAdjudicationPage />}
+            />
+            <Route
+              path="criteria-value-builder"
+              element={<CriteriaValueBuilderPage />}
             />
           </Route>
           <Route

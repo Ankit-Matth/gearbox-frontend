@@ -66,6 +66,8 @@ function Select({
               target: {
                 name,
                 value: isValueNaN ? e.target.value : valueAsFloat,
+                options: e.target.options,
+                selectedIndex: e.target.selectedIndex,
               },
             } as React.ChangeEvent<HTMLSelectElement>)
           }

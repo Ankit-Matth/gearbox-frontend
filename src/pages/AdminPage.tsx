@@ -18,6 +18,11 @@ export function AdminPage({ isAdmin }: { isAdmin: boolean }) {
           <li>
             <Link to="/admin/question-adjudication">Question Adjudication</Link>
           </li>
+          <li>
+            <Link to="/admin/criteria-value-builder">
+              Criteria Value Builder
+            </Link>
+          </li>
         </ol>
       )}
       <Outlet />
