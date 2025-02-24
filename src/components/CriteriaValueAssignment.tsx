@@ -14,7 +14,7 @@ import { createValue } from '../api/value'
 import { updateCriterionStaging } from '../api/criterionStaging'
 import { RequestStatusBar } from './RequestStatusBar'
 
-export function CriteriaValueBuilder({
+export function CriteriaValueAssignment({
   stagingCriterion,
   inputTypes,
   numericValues,
@@ -29,7 +29,10 @@ export function CriteriaValueBuilder({
 }) {
   // const [valueId, setValueId] = useState<number>(0)
   const [echcValueIds, setEchcValueIds] = useState<number[]>(
-    stagingCriterion.echc_value_ids || [0]
+    stagingCriterion.echc_value_ids &&
+      stagingCriterion.echc_value_ids.length > 0
+      ? stagingCriterion.echc_value_ids
+      : [0]
   )
   const [operator, setOperator] = useState<ComparisonOperator | ''>('')
   const [valueString, setValueString] = useState<string>('')

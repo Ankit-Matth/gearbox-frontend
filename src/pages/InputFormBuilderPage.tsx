@@ -29,7 +29,7 @@ function reorder<T extends MatchFormGroupConfig | MatchFormFieldConfig>(
   return result
 }
 
-export function QuestionEditorPage() {
+export function InputFormBuilderPage() {
   const [fields, setFields] = useState<MatchFormFieldConfig[]>([])
   const [showIfFields, setShowIfFields] = useState<Fields>({})
   const [originalFields, setOriginalFields] = useState<MatchFormFieldConfig[]>(

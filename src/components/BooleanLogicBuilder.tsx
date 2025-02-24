@@ -8,7 +8,7 @@ import { CriteriaBuilderModal } from './CriteriaBuilderModal'
 import Button from './Inputs/Button'
 import { updateStudyVersion } from '../api/studyVersions'
 
-export function CriteriaBuilder({
+export function BooleanLogicBuilder({
   gearboxState,
   studyVersion,
   studyVersions,

@@ -8,13 +8,13 @@ import {
   StudyVersionAdjudication,
 } from '../model'
 import Field from '../components/Inputs/Field'
-import { QuestionAdjudication } from '../components/QuestionAdjudication'
+import { CriteriaAnnotationVerification } from '../components/CriteriaAnnotationVerification'
 import { getInputTypes } from '../api/inputTypes'
 import { ErrorRetry } from '../components/ErrorRetry'
 import { getValues } from '../api/value'
 import { getCriterionStaging } from '../api/criterionStaging'
 
-export function QuestionAdjudicationPage() {
+export function CriteriaAnnotationVerificationPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
     StudyVersionAdjudication[]
   >([])
@@ -44,9 +44,7 @@ export function QuestionAdjudicationPage() {
     loadPage()
   }, [])
 
-  const onStudyAdjudicationChanged = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const onStudyChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const index = +event.target.value
     setSvaIndex(index)
     getCriterionStaging(
@@ -76,13 +74,13 @@ export function QuestionAdjudicationPage() {
           })),
         }}
         value={svaIndex}
-        onChange={onStudyAdjudicationChanged}
+        onChange={onStudyChanged}
       />
       {stagingCriteria.length ? (
         stagingCriteria
           .sort((a, b) => a.id - b.id)
           .map((sc) => (
-            <QuestionAdjudication
+            <CriteriaAnnotationVerification
               key={sc.id}
               stagingCriterion={sc}
               lookupValues={values}
