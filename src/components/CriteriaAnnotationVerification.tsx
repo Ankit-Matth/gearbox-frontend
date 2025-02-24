@@ -17,7 +17,7 @@ import {
   saveCriterionStaging,
 } from '../api/criterionStaging'
 
-export function QuestionAdjudication({
+export function CriteriaAnnotationVerification({
   stagingCriterion,
   lookupValues,
   inputTypes,

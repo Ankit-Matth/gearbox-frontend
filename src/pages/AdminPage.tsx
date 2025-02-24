@@ -10,18 +10,20 @@ export function AdminPage({ isAdmin }: { isAdmin: boolean }) {
       {location.pathname === '/admin' && (
         <ol>
           <li>
-            <Link to="/admin/criteria-builder">Study Criteria Builder</Link>
-          </li>
-          <li>
-            <Link to="/admin/question-editor">Question Editor</Link>
-          </li>
-          <li>
-            <Link to="/admin/question-adjudication">Question Adjudication</Link>
-          </li>
-          <li>
-            <Link to="/admin/criteria-value-builder">
-              Criteria Value Builder
+            <Link to="/admin/criteria-annotation-verification">
+              Criteria Annotation Verification
             </Link>
+          </li>
+          <li>
+            <Link to="/admin/criteria-value-assignment">
+              Criteria Value Assignment
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin/input-form-builder">Input Form Builder</Link>
+          </li>
+          <li>
+            <Link to="/admin/boolean-logic-builder">Boolean Logic Builder</Link>
           </li>
         </ol>
       )}

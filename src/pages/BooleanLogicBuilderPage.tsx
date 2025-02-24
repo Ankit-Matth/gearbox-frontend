@@ -2,7 +2,7 @@ import '@react-awesome-query-builder/ui/css/compact_styles.css'
 import React, { useState } from 'react'
 import { MatchingPageProps } from './MatchingPage'
 import TrialCard from '../components/TrialCard'
-import { CriteriaBuilder } from '../components/CriteriaBuilder'
+import { BooleanLogicBuilder } from '../components/BooleanLogicBuilder'
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs'
 import 'react-tabs/style/react-tabs.css'
 import { StudyVersionStatus } from '../model'
@@ -26,7 +26,7 @@ const tabs: TabType[] = [
   },
 ]
 
-export function CriteriaBuilderPage({
+export function BooleanLogicBuilderPage({
   gearboxState,
 }: {
   gearboxState: MatchingPageProps['state']
@@ -55,7 +55,7 @@ export function CriteriaBuilderPage({
               <PublishMatchForm />
               {studyVersions.map((sv) => (
                 <TrialCard study={sv.study} key={sv.id}>
-                  <CriteriaBuilder
+                  <BooleanLogicBuilder
                     studyVersions={studyVersions}
                     setStudyVersions={setStudyVersions}
                     studyVersion={sv}

@@ -10,14 +10,14 @@ import {
 } from '../model'
 import { getStudyVersionsAdjudication } from '../api/studyAdjudication'
 import { ErrorRetry } from '../components/ErrorRetry'
-import { CriteriaValueBuilder } from '../components/CriteriaValueBuilder'
+import { CriteriaValueAssignment } from '../components/CriteriaValueAssignment'
 import { getInputTypes } from '../api/inputTypes'
 import { getUnits } from '../api/units'
 import { getElCriteriaHasCriterionsByElId } from '../api/elCriteriaHasCriterion'
 import { getValues } from '../api/value'
 import { getCriterionStaging } from '../api/criterionStaging'
 
-export function CriteriaValueBuilderPage() {
+export function CriteriaValueAssignmentPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
     StudyVersionAdjudication[]
   >([])
@@ -99,7 +99,7 @@ export function CriteriaValueBuilderPage() {
         activeStagingCriteria
           .sort((a, b) => a.id - b.id)
           .map((sc) => (
-            <CriteriaValueBuilder
+            <CriteriaValueAssignment
               key={sc.id}
               stagingCriterion={sc}
               inputTypes={inputTypes}

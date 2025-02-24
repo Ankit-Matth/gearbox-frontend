@@ -11,16 +11,16 @@ import MatchingPage from './pages/MatchingPage'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import { CriteriaBuilderPage } from './pages/CriteriaBuilderPage'
+import { BooleanLogicBuilderPage } from './pages/BooleanLogicBuilderPage'
 import DocumentReviewPage from './pages/DocumentReviewPage'
 import useAuth from './hooks/useAuth'
 import useGearboxData from './hooks/useGearboxData'
 import { useGoogleAnalytics } from './hooks/useGoogleAnalytics'
 import { ErrorRetry } from './components/ErrorRetry'
 import { AdminPage } from './pages/AdminPage'
-import { QuestionEditorPage } from './pages/QuestionEditorPage'
-import { QuestionAdjudicationPage } from './pages/QuestionAdjudicationPage'
-import { CriteriaValueBuilderPage } from './pages/CriteriaValueBuilderPage'
+import { InputFormBuilderPage } from './pages/InputFormBuilderPage'
+import { CriteriaAnnotationVerificationPage } from './pages/CriteriaAnnotationVerificationPage'
+import { CriteriaValueAssignmentPage } from './pages/CriteriaValueAssignmentPage'
 
 function App() {
   const auth = useAuth()
@@ -66,17 +66,22 @@ function App() {
           <Route path="/LLS" element={<LandingPage isLLS={true} />} />
           <Route path="/admin" element={<AdminPage isAdmin={isAdmin} />}>
             <Route
-              path="criteria-builder"
-              element={<CriteriaBuilderPage gearboxState={gearboxData.state} />}
-            />
-            <Route path="question-editor" element={<QuestionEditorPage />} />
-            <Route
-              path="question-adjudication"
-              element={<QuestionAdjudicationPage />}
+              path="boolean-logic-builder"
+              element={
+                <BooleanLogicBuilderPage gearboxState={gearboxData.state} />
+              }
             />
             <Route
-              path="criteria-value-builder"
-              element={<CriteriaValueBuilderPage />}
+              path="input-form-builder"
+              element={<InputFormBuilderPage />}
+            />
+            <Route
+              path="criteria-annotation-verification"
+              element={<CriteriaAnnotationVerificationPage />}
+            />
+            <Route
+              path="criteria-value-assignment"
+              element={<CriteriaValueAssignmentPage />}
             />
           </Route>
           <Route
