@@ -221,6 +221,15 @@ export type StudyVersionAdjudication = {
   study: Study
 }
 
+export type Criterion = {
+  id: number
+  code: string
+  description: string
+  display_name: string
+  input_type_id: number
+  values: CriteriaValue[]
+}
+
 export type CriterionStaging = {
   code: string
   criterion_adjudication_status: 'NEW' | 'EXISTING' | 'ACTIVE' | 'IN_PROCESS'

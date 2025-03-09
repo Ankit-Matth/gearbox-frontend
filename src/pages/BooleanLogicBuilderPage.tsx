@@ -1,14 +1,15 @@
 import '@react-awesome-query-builder/ui/css/compact_styles.css'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { MatchingPageProps } from './MatchingPage'
 import TrialCard from '../components/TrialCard'
 import { BooleanLogicBuilder } from '../components/BooleanLogicBuilder'
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs'
 import 'react-tabs/style/react-tabs.css'
-import { StudyVersionStatus } from '../model'
+import { Criterion, StudyVersionStatus } from '../model'
 import { useStudyVersions } from '../hooks/useStudyVersions'
 import { ErrorRetry } from '../components/ErrorRetry'
 import { PublishMatchForm } from '../components/PublishMatchForm'
+import { getCriteriaNotExistInMatchForm } from '../api/criterion'
 
 type TabType = {
   id: StudyVersionStatus
@@ -37,6 +38,14 @@ export function BooleanLogicBuilderPage({
   const [studyVersions, setStudyVersions, loadingStatus, fetchStudyVersion] =
     useStudyVersions(tabs[currentTab].id)
 
+  const [criteriaNotInMatchForm, setCriteriaNotInMatchForm] = useState<
+    Criterion[]
+  >([])
+
+  useEffect(() => {
+    getCriteriaNotExistInMatchForm().then(setCriteriaNotInMatchForm)
+  }, [])
+
   return (
     <Tabs tabIndex={currentTab} onSelect={handleTabSelect}>
       <TabList>
@@ -60,6 +69,7 @@ export function BooleanLogicBuilderPage({
                     setStudyVersions={setStudyVersions}
                     studyVersion={sv}
                     gearboxState={gearboxState}
+                    criteriaNotInMatchForm={criteriaNotInMatchForm}
                   />
                 </TrialCard>
               ))}

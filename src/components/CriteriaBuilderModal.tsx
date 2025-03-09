@@ -7,7 +7,7 @@ import {
   Utils as QbUtils,
 } from '@react-awesome-query-builder/ui'
 import React, { Dispatch, SetStateAction, useEffect, useRef } from 'react'
-import { MatchFormConfig, StudyAlgorithmEngine } from '../model'
+import { Criterion, MatchFormConfig, StudyAlgorithmEngine } from '../model'
 import { queryBuilderValueToAlgorithm } from '../utils'
 import {
   createStudyAlgorithm,
@@ -19,11 +19,13 @@ import Button from './Inputs/Button'
 
 export function CriteriaBuilderModal({
   matchForm,
+  criteriaNotInMatchForm,
   studyVersionId,
   closeModal,
   setUpdated,
 }: {
   matchForm: MatchFormConfig
+  criteriaNotInMatchForm: Criterion[]
   studyVersionId: number
   closeModal: () => void
   setUpdated: Dispatch<SetStateAction<boolean>>
@@ -35,7 +37,7 @@ export function CriteriaBuilderModal({
     loadingStatus,
     fetchQueryBuilderState,
     onChange,
-  ] = useQueryBuilderState(studyVersionId, matchForm)
+  ] = useQueryBuilderState(studyVersionId, matchForm, criteriaNotInMatchForm)
 
   const renderBuilder = (props: BuilderProps) => (
     <div className="query-builder-container" style={{ padding: '10px' }}>

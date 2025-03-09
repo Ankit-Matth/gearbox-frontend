@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { MatchingPageProps } from '../pages/MatchingPage'
 import { Check, Edit } from 'react-feather'
 import ReactTooltip from 'react-tooltip'
-import { StudyVersion } from '../model'
+import { Criterion, StudyVersion } from '../model'
 import { useModal } from '../hooks/useModal'
 import { CriteriaBuilderModal } from './CriteriaBuilderModal'
 import Button from './Inputs/Button'
@@ -13,11 +13,13 @@ export function BooleanLogicBuilder({
   studyVersion,
   studyVersions,
   setStudyVersions,
+  criteriaNotInMatchForm,
 }: {
   gearboxState: MatchingPageProps['state']
   studyVersion: StudyVersion
   studyVersions: StudyVersion[]
   setStudyVersions: (svs: StudyVersion[]) => void
+  criteriaNotInMatchForm: Criterion[]
 }) {
   const { study, status } = studyVersion
   const matchInfoId = `match-info-${study.id}`
@@ -68,6 +70,7 @@ export function BooleanLogicBuilder({
       {showModal ? (
         <CriteriaBuilderModal
           matchForm={gearboxState.config}
+          criteriaNotInMatchForm={criteriaNotInMatchForm}
           studyVersionId={studyVersion.id}
           closeModal={closeModal}
           setUpdated={setUpdated}

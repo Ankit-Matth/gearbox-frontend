@@ -1,5 +1,6 @@
 import type {
   ComparisonOperator,
+  Criterion,
   EligibilityCriterion,
   MatchAlgorithm,
   MatchCondition,
@@ -232,7 +233,8 @@ export const initialQueryBuilderConfig: Config = {
 
 export const getQueryBuilderConfig = (
   matchFormFields: MatchFormFieldConfig[],
-  criteria: EligibilityCriterion[]
+  eligibilityCriteria: EligibilityCriterion[],
+  criteriaNotInMatchedForm: Criterion[]
 ): Config => ({
   ...initialQueryBuilderConfig,
   settings: {
@@ -241,18 +243,26 @@ export const getQueryBuilderConfig = (
     immutableOpsMode: true,
     showNot: false,
   },
-  fields: getQueryBuilderField(matchFormFields, criteria),
+  fields: getQueryBuilderField(
+    matchFormFields,
+    eligibilityCriteria,
+    criteriaNotInMatchedForm
+  ),
 })
 
 function getQueryBuilderField(
   matchingFormFields: MatchFormFieldConfig[],
-  criteria: EligibilityCriterion[]
+  eligibilityCriteria: EligibilityCriterion[],
+  criteriaNotInMatchForm: Criterion[]
 ): Fields {
   const result: Fields = {}
 
-  criteria.forEach((c) => {
+  eligibilityCriteria.forEach((c) => {
     const { id, fieldId, fieldValue, operator } = c
     const field = matchingFormFields.find((f) => f.id === fieldId)
+    const criterionNotInMatchForm = criteriaNotInMatchForm.find(
+      (criterion) => criterion.id === fieldId
+    )
 
     if (field) {
       const isSelect = !!field.options?.length
@@ -273,6 +283,27 @@ function getQueryBuilderField(
             }
           : { min: 0 },
       }
+    } else if (criterionNotInMatchForm) {
+      const isSelect = !!criterionNotInMatchForm?.values.length
+      result[id.toString(10)] = {
+        label: `${criterionNotInMatchForm?.code} ${getOperatorString(
+          operator
+        )} ${getValueString(
+          fieldValue,
+          criterionNotInMatchForm
+        )} [ Warning: Not in Match Form ]`,
+        type: isSelect ? 'select' : 'number',
+        defaultOperator: getQueryBuilderOperator(operator, isSelect),
+        defaultValue: fieldValue,
+        fieldSettings: isSelect
+          ? {
+              listValues: criterionNotInMatchForm.values?.map((v) => ({
+                value: v.id,
+                title: v.value_string || '',
+              })),
+            }
+          : { min: 0 },
+      }
     }
   })
 
@@ -287,7 +318,8 @@ export const getInitQueryValue = (): JsonGroup => ({
 export function getQueryBuilderValue(
   algorithm: MatchAlgorithm | undefined | null,
   eligibilityCriteria: EligibilityCriterion[],
-  matchForm: MatchFormConfig
+  matchForm: MatchFormConfig,
+  criteriaNotInMatchForm: Criterion[]
 ): JsonGroup {
   const result = getInitQueryValue()
   if (!algorithm) {
@@ -298,10 +330,19 @@ export function getQueryBuilderValue(
       if (typeof c === 'number') {
         const studyCriterion = eligibilityCriteria.find((ec) => ec.id === c)
         return studyCriterion
-          ? getQueryBuilderRule(studyCriterion, matchForm.fields)
+          ? getQueryBuilderRule(
+              studyCriterion,
+              matchForm.fields,
+              criteriaNotInMatchForm
+            )
           : null
       } else {
-        return getQueryBuilderValue(c, eligibilityCriteria, matchForm)
+        return getQueryBuilderValue(
+          c,
+          eligibilityCriteria,
+          matchForm,
+          criteriaNotInMatchForm
+        )
       }
     })
     .filter(Boolean) as JsonItem[]
@@ -341,24 +382,41 @@ export function queryBuilderValueToAlgorithm(
 
 function getQueryBuilderRule(
   { id, fieldId, fieldValue, operator }: EligibilityCriterion,
-  fields: MatchFormFieldConfig[]
+  fields: MatchFormFieldConfig[],
+  criteriaNotInMatchForm: Criterion[]
 ): JsonRule | null {
   const field = fields.find((f) => f.id === fieldId)
-  if (!field) {
-    return null
+  const criterionNotInMatchForm = criteriaNotInMatchForm.find(
+    (criterion) => criterion.id === fieldId
+  )
+  if (field) {
+    const isSelect = !!field.options?.length
+    return {
+      id: QbUtils.uuid(),
+      type: 'rule',
+      properties: {
+        field: id.toString(10),
+        value: [fieldValue],
+        operator: getQueryBuilderOperator(operator, isSelect),
+        valueSrc: ['value'],
+        valueType: [isSelect ? 'select' : 'number'],
+      },
+    }
+  } else if (criterionNotInMatchForm) {
+    const isSelect = !!criterionNotInMatchForm.values.length
+    return {
+      id: QbUtils.uuid(),
+      type: 'rule',
+      properties: {
+        field: id.toString(10),
+        value: [fieldValue],
+        operator: getQueryBuilderOperator(operator, isSelect),
+        valueSrc: ['value'],
+        valueType: [isSelect ? 'select' : 'number'],
+      },
+    }
   }
-  const isSelect = !!field.options?.length
-  return {
-    id: QbUtils.uuid(),
-    type: 'rule',
-    properties: {
-      field: id.toString(10),
-      value: [fieldValue],
-      operator: getQueryBuilderOperator(operator, isSelect),
-      valueSrc: ['value'],
-      valueType: [isSelect ? 'select' : 'number'],
-    },
-  }
+  return null
 }
 
 function getQueryBuilderOperator(
@@ -422,11 +480,25 @@ function getOperatorString(comparisonOperator: ComparisonOperator): string {
   }
 }
 
-function getValueString(fieldValue: any, field: MatchFormFieldConfig): string {
-  if (field.options?.length) {
-    return field.options.find((o) => o.value === fieldValue)?.label || ''
+function getValueString(
+  fieldValue: any,
+  field: MatchFormFieldConfig | Criterion
+): string {
+  // Check if it's a MatchFormFieldConfig (has options)
+  if (
+    'options' in field &&
+    Array.isArray(field.options) &&
+    field.options.length
+  ) {
+    const option = field.options.find((o) => o.value === fieldValue)
+    return option ? option.label : ''
   }
-  return fieldValue
+  // Check if it's a Criterion (has values)
+  if ('values' in field && Array.isArray(field.values) && field.values.length) {
+    const valueItem = field.values.find((v) => v.id === fieldValue)
+    return valueItem ? valueItem.value_string : ''
+  }
+  return String(fieldValue)
 }
 
 function getCriteriaBuilderFieldType(
@@ -537,7 +609,8 @@ export function getShowIfInitValue(
           fieldValue: c.value,
           operator: c.operator,
         },
-        fields
+        fields,
+        []
       )
     )
     .filter(Boolean) as JsonRule[]

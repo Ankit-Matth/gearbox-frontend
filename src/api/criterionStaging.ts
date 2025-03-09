@@ -39,7 +39,7 @@ export function saveCriterionStaging(
 export function publishCriterionStaging(
   criterionStagingToPublish: CriterionStagingPublish
 ): Promise<string> {
-  return fetchGearbox('/gearbox/criterion-staging-publish', {
+  return fetchGearbox('/gearbox/criterion-staging-publish-criterion', {
     method: 'POST',
     body: JSON.stringify(criterionStagingToPublish),
   }).then((res) => {

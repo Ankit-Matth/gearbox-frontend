@@ -1,4 +1,4 @@
-import { ApiStatus, MatchFormConfig, StudyVersion } from '../model'
+import { ApiStatus, Criterion, MatchFormConfig, StudyVersion } from '../model'
 import {
   Config,
   ImmutableTree,
@@ -22,7 +22,8 @@ export interface QueryBuilderState {
 
 export function useQueryBuilderState(
   studyVersionId: number,
-  matchForm: MatchFormConfig
+  matchForm: MatchFormConfig,
+  criteriaNotInMatchForm: Criterion[]
 ): [
   StudyVersion | null,
   QueryBuilderState,
@@ -52,14 +53,20 @@ export function useQueryBuilderState(
           eligibility_criteria_id: ecId,
           study_algorithm_engine_id: saId,
         } = sv
-        getEligibilityCriteriaById(ecId).then((criteria) => {
+        getEligibilityCriteriaById(ecId).then((eligibilityCriteria) => {
           const queryBuilderConfig = getQueryBuilderConfig(
             matchForm.fields,
-            criteria
+            eligibilityCriteria,
+            criteriaNotInMatchForm
           )
           if (saId) {
             getStudyAlgorithm(saId).then((algorithm) => {
-              const queryValue = getQueryBuilderValue(algorithm, criteria, mf)
+              const queryValue = getQueryBuilderValue(
+                algorithm,
+                eligibilityCriteria,
+                mf,
+                criteriaNotInMatchForm
+              )
               setQueryBuilderState((prevState) => ({
                 ...prevState,
                 tree: QbUtils.checkTree(
