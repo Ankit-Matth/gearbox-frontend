@@ -1,4 +1,10 @@
-import { ApiStatus, MatchFormFieldConfig, MatchFormGroupConfig } from '../model'
+import {
+  ApiStatus,
+  Criterion,
+  InputType,
+  MatchFormFieldConfig,
+  MatchFormGroupConfig,
+} from '../model'
 import {
   DragDropContext,
   Draggable,
@@ -17,6 +23,8 @@ import { getShowIfFields } from '../utils'
 import { ShowIfBuilder } from '../components/ShowIfBuilder'
 import { Fields } from '@react-awesome-query-builder/ui'
 import { PublishMatchForm } from '../components/PublishMatchForm'
+import { getCriteriaNotExistInMatchForm } from '../api/criterion'
+import { getInputTypes } from '../api/inputTypes'
 
 function reorder<T extends MatchFormGroupConfig | MatchFormFieldConfig>(
   list: T[],
@@ -40,6 +48,13 @@ export function InputFormBuilderPage() {
   const [loadingStatus, setLoadingStatus] = useState<ApiStatus>('not started')
   const [confirmStatus, setConfirmStatus] = useState<ApiStatus>('not started')
   const timerIdRef = useRef<NodeJS.Timer | null>(null)
+  const [criteriaNotInMatchForm, setCriteriaNotInMatchForm] = useState<
+    Criterion[]
+  >([])
+  const [selectedCriterionByGroup, setSelectedCriterionByGroup] = useState<
+    Record<number, number>
+  >({})
+  const [inputTypes, setInputTypes] = useState<InputType[]>([])
 
   const loadMatchForm = () => {
     setLoadingStatus('sending')
@@ -59,6 +74,8 @@ export function InputFormBuilderPage() {
 
   useEffect(() => {
     loadMatchForm()
+    getCriteriaNotExistInMatchForm().then(setCriteriaNotInMatchForm)
+    getInputTypes().then(setInputTypes)
     return () => {
       if (timerIdRef.current) {
         clearTimeout(timerIdRef.current)
@@ -102,6 +119,60 @@ export function InputFormBuilderPage() {
             3000
           ))
       )
+  }
+
+  const addCriterion = (groupId: number) => () => {
+    const selectedCriterionId = selectedCriterionByGroup[groupId]
+    if (!selectedCriterionId) {
+      return
+    }
+
+    const criterionToAdd = criteriaNotInMatchForm.find(
+      (c) => c.id === selectedCriterionId
+    )
+    if (!criterionToAdd) {
+      return
+    }
+    const inputType = inputTypes.find(
+      (t) => t.id === criterionToAdd.input_type_id
+    )?.render_type
+
+    if (!inputType) {
+      return
+    }
+
+    const newField: MatchFormFieldConfig = {
+      id: criterionToAdd.id,
+      groupId,
+      type: inputType,
+      name: criterionToAdd.code,
+      label: criterionToAdd.description,
+      options: criterionToAdd.values.map((v) => ({
+        value: v.id,
+        label: v.value_string || '',
+        description: '',
+      })),
+    }
+
+    const newFields = [newField, ...fields]
+    setFields(newFields)
+    setConfirmDisabled(false)
+
+    setCriteriaNotInMatchForm((prev) =>
+      prev.filter((c) => c.id !== selectedCriterionId)
+    )
+
+    setSelectedCriterionByGroup((prev) => ({
+      ...prev,
+      [groupId]: 0,
+    }))
+  }
+
+  const handleCriterionChange = (groupId: number, criterionId: number) => {
+    setSelectedCriterionByGroup((prev) => ({
+      ...prev,
+      [groupId]: criterionId,
+    }))
   }
 
   if (loadingStatus === 'not started' || loadingStatus === 'sending') {
@@ -157,6 +228,36 @@ export function InputFormBuilderPage() {
                       {...provided.droppableProps}
                       className="mt-2"
                     >
+                      <div className="my-2">
+                        <Field
+                          config={{
+                            type: 'select',
+                            label: 'Select a Criterion Not In the Match Form',
+                            placeholder: 'Select One',
+                            options: criteriaNotInMatchForm.map((c) => ({
+                              label: c.description,
+                              value: c.id,
+                            })),
+                            name: `criteriaNotInMatchForm-${group.id}`,
+                          }}
+                          value={selectedCriterionByGroup[group.id] || 0}
+                          onChange={(
+                            event: React.ChangeEvent<HTMLSelectElement>
+                          ) =>
+                            handleCriterionChange(group.id, +event.target.value)
+                          }
+                        />
+                        <div className="flex justify-end">
+                          <Button
+                            size="small"
+                            otherClassName="mt-2"
+                            onClick={addCriterion(group.id)}
+                            disabled={!selectedCriterionByGroup[group.id]}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
                       {fields
                         .filter((field) => field.groupId === group.id)
                         .map((field, index) => (
@@ -170,12 +271,8 @@ export function InputFormBuilderPage() {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  marginBottom: '8px',
-                                  border: '1px solid lightgrey',
-                                  padding: '8px',
-                                }}
+                                className="mb-2 border border-gray-300 p-2"
+                                style={provided.draggableProps.style}
                               >
                                 <FieldWrapper key={field.id} isShowing>
                                   <Field

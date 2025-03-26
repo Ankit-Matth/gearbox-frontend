@@ -89,7 +89,6 @@ export function CriteriaAnnotationVerification({
       criterion_value_ids: selectedValues.map((v) => v.value),
     })
       .then(() => {
-        console.log('here')
         setApiStatus('success')
         setStatus('IN_PROCESS')
         setCanPublish(true)

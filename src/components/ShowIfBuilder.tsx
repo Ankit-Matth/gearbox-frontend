@@ -16,7 +16,7 @@ import {
   initialQueryBuilderConfig,
   jsonGroupToShowIf,
 } from '../utils'
-import { MatchFormFieldConfig } from '../model'
+import { Criterion, MatchFormFieldConfig } from '../model'
 
 export function ShowIfBuilder({
   matchFormFields,
