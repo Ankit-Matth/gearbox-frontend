@@ -2,27 +2,26 @@ import React, { useState } from 'react'
 import { MatchingPageProps } from '../pages/MatchingPage'
 import { Check, Edit } from 'react-feather'
 import ReactTooltip from 'react-tooltip'
-import { StudyVersion } from '../model'
+import { Criterion, StudyVersion } from '../model'
 import { useModal } from '../hooks/useModal'
 import { CriteriaBuilderModal } from './CriteriaBuilderModal'
 import Button from './Inputs/Button'
-import { updateEligibilityCriteriaInfo } from '../api/eligibilityCriteriaInfo'
+import { updateStudyVersion } from '../api/studyVersions'
 
-export function CriteriaBuilder({
+export function BooleanLogicBuilder({
   gearboxState,
   studyVersion,
   studyVersions,
   setStudyVersions,
+  criteriaNotInMatchForm,
 }: {
   gearboxState: MatchingPageProps['state']
   studyVersion: StudyVersion
   studyVersions: StudyVersion[]
   setStudyVersions: (svs: StudyVersion[]) => void
+  criteriaNotInMatchForm: Criterion[]
 }) {
-  const {
-    study,
-    eligibility_criteria_infos: [{ eligibility_criteria_id, status }],
-  } = studyVersion
+  const { study, status } = studyVersion
   const matchInfoId = `match-info-${study.id}`
 
   const [showModal, openModal, closeModal] = useModal()
@@ -31,14 +30,15 @@ export function CriteriaBuilder({
 
   const isActive = status === 'ACTIVE'
   const changeStudyStatus = () => {
-    return updateEligibilityCriteriaInfo(eligibility_criteria_id, {
+    return updateStudyVersion({
+      ...studyVersion,
       status: isActive ? 'IN_PROCESS' : 'ACTIVE',
     })
-      .then(() => {
+      .then(() =>
         setStudyVersions(
           studyVersions.filter((sv) => sv.id !== studyVersion.id)
         )
-      })
+      )
       .catch(console.error)
   }
 
@@ -70,6 +70,7 @@ export function CriteriaBuilder({
       {showModal ? (
         <CriteriaBuilderModal
           matchForm={gearboxState.config}
+          criteriaNotInMatchForm={criteriaNotInMatchForm}
           studyVersionId={studyVersion.id}
           closeModal={closeModal}
           setUpdated={setUpdated}

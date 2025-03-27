@@ -10,7 +10,8 @@ export function getStudies() {
   return fetchGearbox('/gearbox/studies')
     .then((res) => res.json())
     .then(fetch)
-    .then((res) => res.json() as Promise<Study[]>)
+    .then((res) => res.json() as Promise<{ version: string; studies: Study[] }>)
+    .then((res) => res.studies)
     .then((studies) =>
       studies.map(
         (study) =>

@@ -1,26 +1,27 @@
 import type {
+  Criterion,
   EligibilityCriterion,
   MatchAlgorithm,
   MatchCondition,
-  MatchFormValues,
   MatchFormConfig,
   MatchFormFieldShowIfCondition,
-  MatchInfoAlgorithm,
+  MatchFormValues,
   MatchInfo,
+  MatchInfoAlgorithm,
   Study,
 } from './model'
+import { MatchFormFieldConfig } from './model'
 import {
   addMatchStatus,
-  getIsFieldShowing,
   getFieldOptionLabelMap,
-  getUniqueCritIdsInAlgorithm,
-  markRelevantMatchFields,
+  getIsFieldShowing,
   getQueryBuilderConfig,
   getQueryBuilderValue,
-  queryBuilderValueToAlgorithm,
   getShowIfDetails,
+  getUniqueCritIdsInAlgorithm,
+  markRelevantMatchFields,
+  queryBuilderValueToAlgorithm,
 } from './utils'
-import { MatchFormFieldConfig } from './model'
 import {
   Fields,
   JsonGroup,
@@ -678,7 +679,7 @@ describe('getQueryBuilderConfig', () => {
       },
     ]
 
-    const criteria: EligibilityCriterion[] = [
+    const eligibilityCriteria: EligibilityCriterion[] = [
       {
         id: 1,
         fieldId: 1,
@@ -690,6 +691,62 @@ describe('getQueryBuilderConfig', () => {
         fieldId: 2,
         fieldValue: 1,
         operator: 'eq',
+      },
+      {
+        id: 3,
+        fieldId: 218,
+        fieldValue: 5,
+        operator: 'eq',
+      },
+    ]
+
+    const criteriaNotInMatchForm: Criterion[] = [
+      {
+        code: 'karnofsky_score',
+        display_name: 'Test',
+        description: 'description',
+        input_type_id: 2,
+        id: 218,
+        values: [
+          {
+            id: 5,
+            is_numeric: false,
+            active: true,
+            description: 'Not sure',
+            value_string: 'Not sure',
+            unit_name: null,
+            unit_id: 0,
+            operator: 'eq',
+          },
+          {
+            id: 4,
+            is_numeric: false,
+            active: true,
+            description: 'is false',
+            value_string: 'No',
+            unit_name: null,
+            operator: 'eq',
+            unit_id: 0,
+          },
+          {
+            id: 3,
+            is_numeric: false,
+            active: true,
+            description: 'is true',
+            value_string: 'Yes',
+            unit_name: null,
+            operator: 'eq',
+            unit_id: 0,
+          },
+        ],
+      },
+      {
+        code: 'test_code',
+        display_name: 'aaa',
+        description: 'vvv',
+        input_type_id: 1,
+        id: 210,
+        values: [],
       },
     ]
     const expectedFields: Fields = {
@@ -715,8 +772,34 @@ describe('getQueryBuilderConfig', () => {
           ],
         },
       },
+      '3': {
+        label: 'karnofsky_score == Not sure [ Warning: Not in Match Form ]',
+        type: 'select',
+        defaultValue: 5,
+        defaultOperator: 'select_equals',
+        fieldSettings: {
+          listValues: [
+            {
+              title: 'Not sure',
+              value: 5,
+            },
+            {
+              title: 'No',
+              value: 4,
+            },
+            {
+              title: 'Yes',
+              value: 3,
+            },
+          ],
+        },
+      },
     }
-    const queryBuilderConfig = getQueryBuilderConfig(matchFormFields, criteria)
+    const queryBuilderConfig = getQueryBuilderConfig(
+      matchFormFields,
+      eligibilityCriteria,
+      criteriaNotInMatchForm
+    )
     const { immutableValuesMode, immutableOpsMode } =
       queryBuilderConfig.settings
     expect(queryBuilderConfig.fields).toEqual(expectedFields)
@@ -866,11 +949,11 @@ describe('getQueryBuilderValue', () => {
       type: 'group',
     }
     expect(
-      getQueryBuilderValue(undefined, [], { groups: [], fields: [] })
+      getQueryBuilderValue(undefined, [], { groups: [], fields: [] }, [])
     ).toEqual(expected)
-    expect(getQueryBuilderValue(null, [], { groups: [], fields: [] })).toEqual(
-      expected
-    )
+    expect(
+      getQueryBuilderValue(null, [], { groups: [], fields: [] }, [])
+    ).toEqual(expected)
   })
 
   test('when algorithm is not undefined or null', () => {
@@ -962,8 +1045,14 @@ describe('getQueryBuilderValue', () => {
       ],
     }
 
+    const criteriaNotInMatchForm: Criterion[] = []
     expect(
-      getQueryBuilderValue(algorithm, eligibilityCriteria, matchForm)
+      getQueryBuilderValue(
+        algorithm,
+        eligibilityCriteria,
+        matchForm,
+        criteriaNotInMatchForm
+      )
     ).toEqual(jsonGroup)
   })
 })

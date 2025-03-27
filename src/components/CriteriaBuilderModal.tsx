@@ -7,7 +7,7 @@ import {
   Utils as QbUtils,
 } from '@react-awesome-query-builder/ui'
 import React, { Dispatch, SetStateAction, useEffect, useRef } from 'react'
-import { MatchFormConfig, StudyAlgorithmEngine } from '../model'
+import { Criterion, MatchFormConfig, StudyAlgorithmEngine } from '../model'
 import { queryBuilderValueToAlgorithm } from '../utils'
 import {
   createStudyAlgorithm,
@@ -19,11 +19,13 @@ import Button from './Inputs/Button'
 
 export function CriteriaBuilderModal({
   matchForm,
+  criteriaNotInMatchForm,
   studyVersionId,
   closeModal,
   setUpdated,
 }: {
   matchForm: MatchFormConfig
+  criteriaNotInMatchForm: Criterion[]
   studyVersionId: number
   closeModal: () => void
   setUpdated: Dispatch<SetStateAction<boolean>>
@@ -35,7 +37,7 @@ export function CriteriaBuilderModal({
     loadingStatus,
     fetchQueryBuilderState,
     onChange,
-  ] = useQueryBuilderState(studyVersionId, matchForm)
+  ] = useQueryBuilderState(studyVersionId, matchForm, criteriaNotInMatchForm)
 
   const renderBuilder = (props: BuilderProps) => (
     <div className="query-builder-container" style={{ padding: '10px' }}>
@@ -50,13 +52,11 @@ export function CriteriaBuilderModal({
       const studyAlgorithm = queryBuilderValueToAlgorithm(
         QbUtils.getTree(queryBuilderState.tree) as JsonGroup
       )
-      const studyAlgorithmId =
-        studyVersion.eligibility_criteria_infos[0].study_algorithm_engine_id ||
-        0
-      const eligibilityCriteriaId =
-        studyVersion.eligibility_criteria_infos[0].eligibility_criteria_id
+      const studyAlgorithmId = studyVersion.study_algorithm_engine_id || 0
+      const eligibilityCriteriaId = studyVersion.eligibility_criteria_id
       const studyAlgorithmEngine: StudyAlgorithmEngine = {
         id: studyAlgorithmId,
+        study_version_id: studyVersion.id,
         algorithm_logic: studyAlgorithm,
       }
       const saveResponse = studyAlgorithmId

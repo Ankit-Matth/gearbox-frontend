@@ -11,14 +11,16 @@ import MatchingPage from './pages/MatchingPage'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import { CriteriaBuilderPage } from './pages/CriteriaBuilderPage'
+import { BooleanLogicBuilderPage } from './pages/BooleanLogicBuilderPage'
 import DocumentReviewPage from './pages/DocumentReviewPage'
 import useAuth from './hooks/useAuth'
 import useGearboxData from './hooks/useGearboxData'
 import { useGoogleAnalytics } from './hooks/useGoogleAnalytics'
 import { ErrorRetry } from './components/ErrorRetry'
 import { AdminPage } from './pages/AdminPage'
-import { QuestionEditorPage } from './pages/QuestionEditorPage'
+import { InputFormBuilderPage } from './pages/InputFormBuilderPage'
+import { CriteriaAnnotationVerificationPage } from './pages/CriteriaAnnotationVerificationPage'
+import { CriteriaValueAssignmentPage } from './pages/CriteriaValueAssignmentPage'
 
 function App() {
   const auth = useAuth()
@@ -62,26 +64,26 @@ function App() {
             }
           />
           <Route path="/LLS" element={<LandingPage isLLS={true} />} />
-          <Route
-            path="/admin"
-            element={isAdmin ? <AdminPage /> : <Navigate to="/" replace />}
-          />
-          <Route
-            path="/admin/criteria-builder"
-            element={
-              isAdmin ? (
-                <CriteriaBuilderPage gearboxState={gearboxData.state} />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/admin/question-editor"
-            element={
-              isAdmin ? <QuestionEditorPage /> : <Navigate to="/" replace />
-            }
-          />
+          <Route path="/admin" element={<AdminPage isAdmin={isAdmin} />}>
+            <Route
+              path="boolean-logic-builder"
+              element={
+                <BooleanLogicBuilderPage gearboxState={gearboxData.state} />
+              }
+            />
+            <Route
+              path="input-form-builder"
+              element={<InputFormBuilderPage />}
+            />
+            <Route
+              path="criteria-annotation-verification"
+              element={<CriteriaAnnotationVerificationPage />}
+            />
+            <Route
+              path="criteria-value-assignment"
+              element={<CriteriaValueAssignmentPage />}
+            />
+          </Route>
           <Route
             path="/login"
             element={

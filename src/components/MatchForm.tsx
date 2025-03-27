@@ -4,7 +4,12 @@ import DropdownSection from './DropdownSection'
 import FieldWrapper from './FieldWrapper'
 import Field from './Inputs/Field'
 import { clearShowIfField, getDefaultValues, getIsFieldShowing } from '../utils'
-import type { MatchFormValues, MatchFormConfig } from '../model'
+import type {
+  MatchFormValues,
+  MatchFormConfig,
+  ImportantQuestionConfig,
+  MatchFormFieldConfig,
+} from '../model'
 
 export type MatchFormProps = {
   config: MatchFormConfig
@@ -12,6 +17,7 @@ export type MatchFormProps = {
   isFilterActive: boolean
   updateMatchInput(values: MatchFormValues): void
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>
+  importantQuestionsConfig: ImportantQuestionConfig
 }
 
 function MatchForm({
@@ -20,34 +26,81 @@ function MatchForm({
   isFilterActive,
   updateMatchInput,
   setIsUpdating,
+  importantQuestionsConfig,
 }: MatchFormProps) {
   const [values, setValues] = useState(getDefaultValues(config))
   useEffect(() => setValues({ ...matchInput }), [matchInput])
 
   const formEl = useRef<HTMLFormElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | undefined>()
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newValues = {
-      ...values,
-      [e.target.name]:
-        e.target.type === 'checkbox' ? e.target.checked : e.target.value,
+
+  const handleChange =
+    (fieldType: MatchFormFieldConfig['type']) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (fieldType === 'checkbox' || fieldType === 'multiselect') {
+        // no render type for these two for now.
+        return
+      }
+      const { name, value } = e.target
+      const isNumberValue = fieldType === 'select' || fieldType === 'radio'
+      const isEmptyValue = !value
+      const newValues: MatchFormValues = {
+        ...values,
+        [name]: isEmptyValue ? undefined : isNumberValue ? +value : value,
+      }
+      setValues(newValues)
+
+      if (timeoutRef.current !== undefined) clearTimeout(timeoutRef.current)
+
+      if (formEl?.current?.reportValidity()) {
+        setIsUpdating(true)
+        timeoutRef.current = setTimeout(() => {
+          updateMatchInput(clearShowIfField(config, newValues))
+          setIsUpdating(false)
+          clearTimeout(timeoutRef.current)
+        }, 1000)
+      } else setIsUpdating(false)
     }
-    setValues(newValues)
 
-    if (timeoutRef.current !== undefined) clearTimeout(timeoutRef.current)
+  // Separate important fields from the rest
+  const importantFields = config.fields.filter((field) =>
+    importantQuestionsConfig.groups.some(
+      (importantGroup) => importantGroup.name === field.name
+    )
+  )
 
-    if (formEl?.current?.reportValidity()) {
-      setIsUpdating(true)
-      timeoutRef.current = setTimeout(() => {
-        updateMatchInput(clearShowIfField(config, newValues))
-        setIsUpdating(false)
-        clearTimeout(timeoutRef.current)
-      }, 1000)
-    } else setIsUpdating(false)
-  }
+  const otherFields = config.fields.filter(
+    (field) =>
+      !importantQuestionsConfig.groups.some(
+        (importantGroup) => importantGroup.name === field.name
+      )
+  )
 
   return (
     <form ref={formEl}>
+      {/* Render important questions */}
+      {importantFields.map(
+        ({ id, groupId, relevant, showIf, ...fieldConfig }) => {
+          const isFieldShowing =
+            (!isFilterActive || relevant) &&
+            (showIf === undefined || getIsFieldShowing(showIf, config, values))
+
+          return (
+            <FieldWrapper key={id} isShowing={isFieldShowing}>
+              <Field
+                config={{
+                  ...fieldConfig,
+                  name: String(id),
+                  disabled: !relevant,
+                }}
+                value={values[id]}
+                onChange={handleChange(fieldConfig.type)}
+              />
+            </FieldWrapper>
+          )
+        }
+      )}
+
       {config.groups.map((group, i) => (
         <DropdownSection
           key={group.id}
@@ -55,7 +108,7 @@ function MatchForm({
           name={group.name || 'General'}
           isCollapsedAtStart={i !== 0}
         >
-          {config.fields.map(
+          {otherFields.map(
             ({
               id,
               groupId,
@@ -80,7 +133,7 @@ function MatchForm({
                       disabled: !relevant,
                     }}
                     value={values[id]}
-                    onChange={handleChange}
+                    onChange={handleChange(fieldConfig.type)}
                   />
                 </FieldWrapper>
               )

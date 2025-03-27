@@ -1,14 +1,15 @@
 import '@react-awesome-query-builder/ui/css/compact_styles.css'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { MatchingPageProps } from './MatchingPage'
 import TrialCard from '../components/TrialCard'
-import { CriteriaBuilder } from '../components/CriteriaBuilder'
+import { BooleanLogicBuilder } from '../components/BooleanLogicBuilder'
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs'
 import 'react-tabs/style/react-tabs.css'
-import { StudyVersionStatus } from '../model'
+import { Criterion, StudyVersionStatus } from '../model'
 import { useStudyVersions } from '../hooks/useStudyVersions'
 import { ErrorRetry } from '../components/ErrorRetry'
 import { PublishMatchForm } from '../components/PublishMatchForm'
+import { getCriteriaNotExistInMatchForm } from '../api/criterion'
 
 type TabType = {
   id: StudyVersionStatus
@@ -26,7 +27,7 @@ const tabs: TabType[] = [
   },
 ]
 
-export function CriteriaBuilderPage({
+export function BooleanLogicBuilderPage({
   gearboxState,
 }: {
   gearboxState: MatchingPageProps['state']
@@ -36,6 +37,14 @@ export function CriteriaBuilderPage({
 
   const [studyVersions, setStudyVersions, loadingStatus, fetchStudyVersion] =
     useStudyVersions(tabs[currentTab].id)
+
+  const [criteriaNotInMatchForm, setCriteriaNotInMatchForm] = useState<
+    Criterion[]
+  >([])
+
+  useEffect(() => {
+    getCriteriaNotExistInMatchForm().then(setCriteriaNotInMatchForm)
+  }, [])
 
   return (
     <Tabs tabIndex={currentTab} onSelect={handleTabSelect}>
@@ -55,11 +64,12 @@ export function CriteriaBuilderPage({
               <PublishMatchForm />
               {studyVersions.map((sv) => (
                 <TrialCard study={sv.study} key={sv.id}>
-                  <CriteriaBuilder
+                  <BooleanLogicBuilder
                     studyVersions={studyVersions}
                     setStudyVersions={setStudyVersions}
                     studyVersion={sv}
                     gearboxState={gearboxState}
+                    criteriaNotInMatchForm={criteriaNotInMatchForm}
                   />
                 </TrialCard>
               ))}
