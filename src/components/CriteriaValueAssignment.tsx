@@ -32,7 +32,7 @@ export function CriteriaValueAssignment({
     stagingCriterion.echc_value_ids &&
       stagingCriterion.echc_value_ids.length > 0
       ? stagingCriterion.echc_value_ids
-      : [0]
+      : []
   )
   const [operator, setOperator] = useState<ComparisonOperator | ''>('')
   const [valueString, setValueString] = useState<string>('')
@@ -42,6 +42,7 @@ export function CriteriaValueAssignment({
     useState<ApiStatus>('not started')
   const [errorMsg, setErrorMsg] = useState<string>('')
   const timerIdRef = useRef<NodeJS.Timer | null>(null)
+  const [valuesChanged, setValuesChanged] = useState<boolean>(false)
   const [valuesSaved, setValuesSaved] = useState<boolean>(false)
   const [valuesPublished, setValuesPublished] = useState<boolean>(
     stagingCriterion.echc_adjudication_status === 'ACTIVE'
@@ -122,13 +123,13 @@ export function CriteriaValueAssignment({
         setSaveValueStatus('error')
         setErrorMsg(error.message)
       })
-      .finally(
-        () =>
-          (timerIdRef.current = setTimeout(
-            () => setSaveValueStatus('not started'),
-            3000
-          ))
-      )
+      .finally(() => {
+        setValuesChanged(false)
+        timerIdRef.current = setTimeout(
+          () => setSaveValueStatus('not started'),
+          3000
+        )
+      })
   }
   const addNumericValue = (event: React.FormEvent) => {
     event.preventDefault()
@@ -165,6 +166,23 @@ export function CriteriaValueAssignment({
     }
   }
 
+  const valueOptions: { label: string; value: number }[] = isList
+    ? stagingCriterion.criterion_value_list?.map((v) => ({
+        value: v.id,
+        label: `== ${v.value_string}` || '',
+      })) || []
+    : numericValues.map((v) => {
+        const unit = units.find((u) => u.id === v.unit_id)
+        const unitName = unit?.name === 'none' ? '' : unit?.name
+
+        return {
+          value: v.id,
+          label: `${v.operator ? operatorMap.get(v.operator) : ''} ${
+            v.value_string || ''
+          } ${unitName || ''}`,
+        }
+      })
+
   return (
     <>
       <div className="my-4 p-4 border border-gray-400">
@@ -199,106 +217,43 @@ export function CriteriaValueAssignment({
               <span className="font-bold">Options: </span>
               {options}
             </div>
-            {echcValueIds.map((echcValueId, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                {/* Wrap the select field inside a div to ensure consistent height */}
-                <div className="flex-1">
-                  <Field
-                    config={{
-                      type: 'select',
-                      name: 'value',
-                      placeholder: 'Select One',
-                      label: 'Value: ',
-                      readOnly: valuesPublished,
-                      options:
-                        stagingCriterion.criterion_value_list?.map((v) => ({
-                          value: v.id,
-                          label: `== ${v.value_string}` || '',
-                        })) || [],
-                    }}
-                    value={echcValueId}
-                    onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                      setEchcValueIds((prev) =>
-                        prev.map((v, i) =>
-                          i === index ? +event.target.value : v
-                        )
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Remove Button - Ensure it aligns properly */}
-                {!valuesPublished && (
-                  <Button
-                    otherClassName="ml-2 mt-6"
-                    disabled={echcValueIds.length <= 1}
-                    size="small"
-                    onClick={() => {
-                      setEchcValueIds((prev) =>
-                        prev.filter((_, i) => i !== index)
-                      )
-                      setValuesSaved(false)
-                    }}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-            ))}
+            <Field
+              config={{
+                type: 'multiselect',
+                name: 'values',
+                label: 'Values: ',
+                disabled: valuesPublished,
+                options: valueOptions,
+                isCreatable: false,
+              }}
+              value={valueOptions.filter((option) =>
+                echcValueIds.includes(option.value)
+              )}
+              onChange={(newValues: { label: string; value: number }[]) => {
+                setEchcValueIds(newValues.map((v) => v.value))
+                setValuesChanged(true)
+              }}
+            />
           </>
         ) : (
           <>
-            {echcValueIds.map((echcValueId, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                {/* Wrap the select field inside a div to ensure consistent height */}
-                <div className="flex-1">
-                  <Field
-                    config={{
-                      type: 'select',
-                      name: 'value',
-                      placeholder: 'Select One',
-                      label: 'Value: ',
-                      readOnly: valuesPublished,
-                      options: numericValues.map((v) => {
-                        const unit = units.find((u) => u.id === v.unit_id)
-                        const unitName = unit?.name === 'none' ? '' : unit?.name
-
-                        return {
-                          value: v.id,
-                          label: `${
-                            v.operator ? operatorMap.get(v.operator) : ''
-                          } ${v.value_string || ''} ${unitName || ''}`,
-                        }
-                      }),
-                    }}
-                    value={echcValueId}
-                    onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-                      setEchcValueIds((prev) =>
-                        prev.map((v, i) =>
-                          i === index ? +event.target.value : v
-                        )
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Remove Button - Ensure it aligns properly */}
-                {!valuesPublished && (
-                  <Button
-                    otherClassName="ml-2 mt-6"
-                    size="small"
-                    disabled={echcValueIds.length <= 1}
-                    onClick={() =>
-                      setEchcValueIds((prev) =>
-                        prev.filter((_, i) => i !== index)
-                      )
-                    }
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-            ))}
+            <Field
+              config={{
+                type: 'multiselect',
+                name: 'values',
+                label: 'Values: ',
+                disabled: valuesPublished,
+                options: valueOptions,
+                isCreatable: false,
+              }}
+              value={valueOptions.filter((option) =>
+                echcValueIds.includes(option.value)
+              )}
+              onChange={(newValues: { label: string; value: number }[]) => {
+                setEchcValueIds(newValues.map((v) => v.value))
+                setValuesChanged(true)
+              }}
+            />
             {!valuesPublished && (
               <div className="mt-4 border border-gray-400 rounded p-4">
                 <span className="font-bold">
@@ -386,9 +341,7 @@ export function CriteriaValueAssignment({
                 otherClassName="mt-4"
                 size="small"
                 onClick={saveEchcValues}
-                disabled={
-                  !echcValueIds.filter(Boolean).length || isSendingSaveReq
-                }
+                disabled={!valuesChanged || isSendingSaveReq}
               >
                 Save Value
               </Button>
@@ -396,7 +349,9 @@ export function CriteriaValueAssignment({
                 otherClassName="mt-4"
                 size="small"
                 onClick={publishValue}
-                disabled={!valuesSaved || isSendingSaveReq}
+                disabled={
+                  !valuesSaved || isSendingSaveReq || !echcValueIds.length
+                }
               >
                 Publish Value
               </Button>
@@ -405,19 +360,6 @@ export function CriteriaValueAssignment({
             {/* Request Status Bar */}
             <div className="flex items-center h-full mt-4 ml-4">
               <RequestStatusBar apiStatus={saveValueStatus} errorMsg="error" />
-            </div>
-
-            <div className="ml-auto flex space-x-4">
-              <Button
-                otherClassName="mt-4"
-                size="small"
-                onClick={() => {
-                  setEchcValueIds((prev) => [...prev, 0])
-                  setValuesSaved(false)
-                }}
-              >
-                Another Value
-              </Button>
             </div>
           </div>
         )}
