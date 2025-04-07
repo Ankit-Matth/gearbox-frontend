@@ -16,6 +16,7 @@ import {
 import { useQueryBuilderState } from '../hooks/useQueryBuilderState'
 import { ErrorRetry } from './ErrorRetry'
 import Button from './Inputs/Button'
+import LoadingState from './LoadingState'
 
 export function CriteriaBuilderModal({
   matchForm,
@@ -125,7 +126,7 @@ export function CriteriaBuilderModal({
             </div>
           </div>
           {loadingStatus === 'not started' || loadingStatus === 'sending' ? (
-            <div>Loading...</div>
+            <LoadingState />
           ) : loadingStatus === 'error' ? (
             <ErrorRetry retry={fetchQueryBuilderState} />
           ) : (

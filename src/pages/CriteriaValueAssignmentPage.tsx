@@ -16,6 +16,7 @@ import { getUnits } from '../api/units'
 import { getElCriteriaHasCriterionsByElId } from '../api/elCriteriaHasCriterion'
 import { getValues } from '../api/value'
 import { getCriterionStaging } from '../api/criterionStaging'
+import LoadingState from '../components/LoadingState'
 
 export function CriteriaValueAssignmentPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
@@ -74,7 +75,7 @@ export function CriteriaValueAssignmentPage() {
   }, [])
 
   if (loadingStatus === 'not started' || loadingStatus === 'sending') {
-    return <div>Loading...</div>
+    return <LoadingState />
   } else if (loadingStatus === 'error') {
     return <ErrorRetry retry={loadPage} />
   }

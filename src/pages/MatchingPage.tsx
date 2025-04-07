@@ -29,6 +29,7 @@ import {
 } from '../api/userInput'
 import { useModal } from '../hooks/useModal'
 import { UserInputModal } from '../components/UserInputModal'
+import LoadingState from '../components/LoadingState'
 
 export type MatchingPageProps = ReturnType<typeof useGearboxData>
 
@@ -106,7 +107,7 @@ function MatchingPage({
     currentUserInput,
     studies,
   ])
-  if (status === 'sending') return <div>Loading...</div>
+  if (status === 'sending') return <LoadingState />
   if (status === 'error') {
     return ErrorRetry({ retry: fetchAll })
   }

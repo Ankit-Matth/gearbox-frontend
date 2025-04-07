@@ -13,6 +13,7 @@ import { getInputTypes } from '../api/inputTypes'
 import { ErrorRetry } from '../components/ErrorRetry'
 import { getValues } from '../api/value'
 import { getCriterionStaging } from '../api/criterionStaging'
+import LoadingState from '../components/LoadingState'
 
 export function CriteriaAnnotationVerificationPage() {
   const [studyVersionsAdjudication, setStudyVersionsAdjudication] = useState<
@@ -55,7 +56,7 @@ export function CriteriaAnnotationVerificationPage() {
   }
 
   if (loadingStatus === 'not started' || loadingStatus === 'sending') {
-    return <div>Loading...</div>
+    return <LoadingState />
   } else if (loadingStatus === 'error') {
     return <ErrorRetry retry={loadPage} />
   }

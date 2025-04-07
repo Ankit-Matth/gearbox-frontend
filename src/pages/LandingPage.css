@@ -14,14 +14,14 @@
   right: -15%;
   z-index: -1;
 
-  animation-name: spin;
+  animation-name: spinGearIcon;
   animation-delay: 500ms;
   animation-duration: 2500ms;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
 }
 
-@keyframes spin {
+@keyframes spinGearIcon {
   0% {
     transform: rotate(360deg);
   }

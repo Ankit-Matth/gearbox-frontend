@@ -10,6 +10,7 @@ import { useStudyVersions } from '../hooks/useStudyVersions'
 import { ErrorRetry } from '../components/ErrorRetry'
 import { PublishMatchForm } from '../components/PublishMatchForm'
 import { getCriteriaNotExistInMatchForm } from '../api/criterion'
+import LoadingState from '../components/LoadingState'
 
 type TabType = {
   id: StudyVersionStatus
@@ -56,7 +57,7 @@ export function BooleanLogicBuilderPage({
       {tabs.map((tab) => (
         <TabPanel key={tab.id}>
           {loadingStatus === 'not started' || loadingStatus === 'sending' ? (
-            <div>Loading...</div>
+            <LoadingState />
           ) : loadingStatus === 'error' ? (
             <ErrorRetry retry={fetchStudyVersion} />
           ) : (

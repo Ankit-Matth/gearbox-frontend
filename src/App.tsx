@@ -17,6 +17,7 @@ import useAuth from './hooks/useAuth'
 import useGearboxData from './hooks/useGearboxData'
 import { useGoogleAnalytics } from './hooks/useGoogleAnalytics'
 import { ErrorRetry } from './components/ErrorRetry'
+import LoadingState from './components/LoadingState'
 import { AdminPage } from './pages/AdminPage'
 import { InputFormBuilderPage } from './pages/InputFormBuilderPage'
 import { CriteriaAnnotationVerificationPage } from './pages/CriteriaAnnotationVerificationPage'
@@ -34,7 +35,7 @@ function App() {
     auth.loadingStatus === 'not started' ||
     auth.loadingStatus === 'sending'
   ) {
-    return <h1>Loading...</h1>
+    return <LoadingState />
   } else if (auth.loadingStatus === 'error') {
     return <ErrorRetry retry={auth.fetchAuth} />
   }

@@ -25,6 +25,7 @@ import { Fields } from '@react-awesome-query-builder/ui'
 import { PublishMatchForm } from '../components/PublishMatchForm'
 import { getCriteriaNotExistInMatchForm } from '../api/criterion'
 import { getInputTypes } from '../api/inputTypes'
+import LoadingState from '../components/LoadingState'
 
 function reorder<T extends MatchFormGroupConfig | MatchFormFieldConfig>(
   list: T[],
@@ -176,7 +177,7 @@ export function InputFormBuilderPage() {
   }
 
   if (loadingStatus === 'not started' || loadingStatus === 'sending') {
-    return <div>Loading...</div>
+    return <LoadingState />
   } else if (loadingStatus === 'error') {
     return <ErrorRetry retry={loadMatchForm} />
   }
