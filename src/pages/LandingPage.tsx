@@ -19,7 +19,7 @@ function LandingPageSection1() {
     <section className="relative overflow-x-hidden px-4">
       <img id="beehive" src={pedalBeehives} alt="Beehive background graphic" />
       <img id="gear-icon" src={gearIcon} alt="Gear icon background graphic" />
-      <div className="flex items-center min-h-screen max-w-screen-xl md:mx-auto">
+      <div className="flex items-center sm:min-h-screen max-w-screen-xl md:mx-auto mt-16">
         <div className="w-full">
           <h1 className="leading-tight text-4xl sm:text-5xl lg:text-6xl mb-8">
             Find <strong className="text-primary">clinical trials</strong>
@@ -28,7 +28,7 @@ function LandingPageSection1() {
             <br />
             Instantly.
           </h1>
-          <p className="max-w-xs sm:max-w-md sm:text-lg md:text-xl mr-16 sm:mr-0 mb-16">
+          <p className="max-w-xs sm:max-w-md sm:text-lg md:text-xl mr-16 sm:mr-0 sm:mb-16 pr-4 mb-8">
             GEARBOx{' '}
             <span className="text-xs text-gray-400">
               Genomic Eligibility AlgoRithm for Better Outcomes
@@ -47,7 +47,7 @@ function LandingPageSection1() {
 
 function LandingPageSection2() {
   return (
-    <section className="min-h-screen flex items-center my-16">
+    <section className="sm:min-h-screen flex items-center my-16">
       <div className="w-full text-center">
         <div id="section-2-img-container" className="w-full relative xl:mb-16">
           <img id="gearbox-logo" src={gearboxLogo} alt="GEARBOx logo" />
@@ -71,7 +71,7 @@ function LandingPageSection2() {
 
 function LandingPageSection3() {
   return (
-    <section className="min-h-screen flex items-center my-16">
+    <section className="sm:min-h-screen flex items-center sm:my-16 mb-0">
       <div className="max-w-screen-xl text-center mx-auto">
         <div className="flex flex-wrap items-center justify-center mb-8 px-4">
           <img
@@ -93,7 +93,7 @@ function LandingPageSection3() {
 function LandingPageSection4({ isLLS }: { isLLS: boolean }) {
   return (
     <>
-      <section className="min-h-screen items-center my-16">
+      <section className="sm:min-h-screen items-center sm:my-16 mt-0">
         <div className="lg:flex max-w-screen-md lg:max-w-screen-xl mx-auto px-4">
           <div className="mx-auto lg:mx-0 lg:mr-8">
             <h2 className="leading-tight text-4xl md:text-5xl mb-8 lg:mb-16">
